@@ -69,37 +69,71 @@ class Book
         {
             std::cout << author << " | " << title << " | " << copies << " Copies" << std::endl;
         }
-        // int get_book_search(std::string search)
-        // {
-        //     if(search == author || search == title || search == copies)
-        //     {
-        //         get_book();
-        //     }
-        // }   
-        
-        int existing_book_check(std::string a, std::string b)
+        void book_search_print(std::string search)
+        {
+            if(search == author || search == title || search == copies)
+            {
+                get_book();
+            }
+        }   
+        bool existing_book_check(std::string a, std::string b)
         {
             if(a == author && b == title)
             {
-                std::cout << "Book already exists on system" << std::endl;
-                return 1;
+                std::cout << "Book already exists in database" << std::endl;
+                get_book();
+                return true;
             }
-            return 0;
+            return false;
         }
-        // int search_for_delete(std::string search, int selected_book)
-        // { 
-        //     if(search == author || search == title)
-        //     {
-        //         get_book();
-        //         return selected_book;
-        //     }
-        //     return //???;
-        // }
-
-        void delete_book() //upload all but one
+        bool book_search_return(std::string search)
+        { 
+            if(search == author || search == title)
+            {
+                get_book();
+                return true;
+            }
+            return false;
+        }
+        void upload_book(int books_total, int book_counter) //dodgy code as it has to open and close the file on every iteration 
+        { 
+            std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ios::app);
+            if(!file.is_open())
+            { 
+                std::cout << "LibraryStorage.csv file has not opened" << std::endl;
+            }
+            
+            if(books_total == book_counter)
+            {
+                file << author << "," << title << "," << copies;
+            }
+            else
+            {
+                file << author << "," << title << "," << copies << std::endl;
+            }
+            file.close();
+            std::cout << "book counter is " << book_counter << std::endl;
+            std::cout << "book total is: " << books_total << std::endl;
+        }
+        
+        
+        void modify_author(std::string modify_option) //for tomorrow. Book is updated in class system. That data now need to be updated to the database by clearing and re-pasting. 
         {
-            std::ofstream file("MyProjects\\Library\\Library_Folder\\library_test.csv");
-            file << author << "," << title << "," << copies << std::endl;
+            author = modify_option;
+            get_book();
+            std::cout << "Book modified" << std::endl;
+        }
+        void modify_title(std::string modify_option)
+        {
+            title = modify_option;
+            get_book();
+            std::cout << "Book modified" << std::endl;
+        }
+        void modify_copies(std::string modify_option)
+        {
+            copies = modify_option;
+            get_book();
+            std::cout << "Book modified" << std::endl;
         }
 };
 
@@ -114,6 +148,8 @@ void add_book();
 void remove_book();
 void library_login();
 void administrator_menu();
+void modify_book();
+bool yes_or_no();
 
 //---------------------------------------------------------------------------------------------------------------------------
 
@@ -223,7 +259,7 @@ std::vector<Book> file_in_and_store()
                 case 0: author = line.substr(start, end - start); break;
                 case 1: title = line.substr(start, end - start); break;
                 case 2: copies = line.substr(start, line.length()); break;
-                default: std::cout << "Something went wrong!" << std::endl; break;
+                default: std::cout << "Something went wrong, file_in_and_store()!" << std::endl; break;
             }
             start = end + comma.length();
             end = line.find(comma, start);  
@@ -332,36 +368,6 @@ char menu_function(std::string menu_option, std::string q)
     return toupper(choice);
 }
 
-// void display_menu()
-// {
-    
-//     std::cout << "Welcome to the Online Library!" << std::endl;
-//     char choice; 
-//     do
-//     {
-//         choice = menu_function("|Customer|Administrator", "Quit");
-        
-//         switch(choice)
-//         {
-//             case '1':
-//                 //system("cls");
-//                 customer_menu();
-//                 break;  
-//             case '2':
-//                 //system("cls");  
-//                 administrator_menu();
-//                 break;
-//             case 'Q':
-//                 //system("cls");
-//                 std::cout << "You have left\n";
-//                 break;    
-//             default:
-//                 //system("cls");
-//                 std::cout << "Option not available\n";
-//         }    
-//     }
-//     while(choice != 'Q'); 
-// }
 
 void administrator_menu()
 {
@@ -369,7 +375,7 @@ void administrator_menu()
     char choice; 
     do
     {
-        choice = menu_function("|Search|Add a book to the database", "Back");
+        choice = menu_function("|Search|Add a book to the database|Remove book from the database|Modify Book", "Back");
         
         switch(choice)
         {
@@ -380,6 +386,14 @@ void administrator_menu()
             case '2':
                 //system("cls");
                 add_book();
+                break;
+            case '3':
+                //system("cls");
+                remove_book();
+                break;
+            case '4':
+                //system("cls");
+                modify_book();
                 break;
             case 'Q':
                 //system("cls");
@@ -423,7 +437,7 @@ void customer_menu()
 //--------------------------------------------------------------------------------------------------------------------
 
 
-void book_search()
+void book_search() //works
 {   
     std::string search;
     std::vector<Book> library = file_in_and_store();
@@ -437,13 +451,13 @@ void book_search()
         {    
             case '1':
                 //system("cls");
-                std::cout << "Press 'Q' to quit otherwise enter what you would like to search for: ";
+                std::cout << "Press 'Q' to quit, otherwise enter what you would like to search for: ";
                 
                 getline(std::cin >> std::ws, search);
                 std::cout << std::endl;
                 for(int i = 0; i < library.size(); i++)
                 {
-                    //library[i].get_book_search(search);
+                    library[i].book_search_print(search);
                 }
                 break;
             case '2':
@@ -464,7 +478,7 @@ void book_search()
     } while (choice != 'Q');        
 }
 
-void add_book()
+void add_book() //works
 {   
     std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ios::app);
     std::string author, title, copies;
@@ -479,12 +493,11 @@ void add_book()
     std::cout << "Number of Copies: ";
     getline(std::cin >> std::ws, copies);
 
-
-    int result;
+    bool result;
     for(int i = 0; i < library.size(); i++)
     {
         result = library[i].existing_book_check(author, title);
-        if (result == 1)
+        if(result == true)
         {
             return;
         }
@@ -505,66 +518,209 @@ void add_book()
         }
         else if(answer == "YES")
         {
-            file << author << "," << title << "," << copies << std::endl;
+            file << std::endl << author << "," << title << "," << copies; //store book
             return;
         }
         else(answer != "NO" || answer != "YES");
         {
             std::cout << "Input invalid. Please type YES or NO: " << std::endl;
         }
-    }while(answer == "NO" || answer == "YES");
+    }while(answer != "NO" || answer != "YES");
 }
 
-// void remove_book()
-// {
-//     std::vector<Book> library = file_in_and_store();
-//     std::string search;
-//     std::string answer;
-//     int selected_book;
+void remove_book()
+{
+    std::vector<Book> library = file_in_and_store();
+    int books_total = (library.size()-1); //beacuse we are deleting a book
+    int books_counter = 0;
+    std::string search;
+    std::string answer;
+    int selected_book;
+    bool match = false;
     
-//     do
-//     {        
-//         std::cout << "Press 'Q' to quit otherwise enter what you would like to search for: ";
-//         getline(std::cin >> std::ws, search);
-//         std::cout << std::endl;
+    do
+    {        
+        std::cout << "Press 'Q' to quit, otherwise enter what you would like to search for: ";
+        getline(std::cin >> std::ws, search);
+        std::cout << std::endl;
         
-//         for(int i = 0; i < library.size(); i++)
-//         {
-//             selected_book = library[i].search_for_delete(search, i);
-//         }   
-//     } while (search != "Q");        
+        if(search == "Q" || search == "q")
+        {
+            return;
+        }
 
-//     //if nothing is returned then return out, or try again
+        for(int i = 0; i < library.size(); i++) //search through vector of books  //current search only searchs for 1 string, not 2.
+        {
+            match = library[i].book_search_return(search);
+            if(match)
+            {
+                selected_book = i;
+                break;
+            }
+        }
+        if(!match)
+        {
+            std::cout << "Could not find book, please try again" << std::endl;  
+        }
+    } while(!match);        
+    std::cout << "Selected book is equal to " << selected_book << std::endl;
+    std::cout << library.size() << std::endl;
+    //if nothing is returned then return out, or try again
     
-//     std::cout << "\nAre you sure you want to delete this book from the database?" << "\nYes/No" << std::endl; 
-//     do
-//     {
-//         std::cin >> answer;
-//         transform(answer.begin(), answer.end(), answer.begin(), toupper);     
+    std::cout << "\nAre you sure you want to delete this book from the database?" << "\nYes/No" << std::endl; 
+    do
+    {
+        std::cin >> answer;
+        transform(answer.begin(), answer.end(), answer.begin(), toupper);     
         
-//         if(answer == "NO")    //may not need returns, as while statment is true
-//         {
-//             return;
-//         }
-//         else if(answer == "YES")
-//         {
+        if(answer == "NO")    //may not need returns, as while statment is true
+        {
+            return;
+        }
+        else if(answer == "YES")
+        {
+            std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ofstream::out | std::ofstream::trunc); //clears the database. Bit risky if something fails, but works for now.
             
-//             for(int i = 0; i < library.size(); i++) //upload all but one
-//             {
-//                 if(i != selected_book)
-//                 {
-//                     library[i].delete_book(); 
-//                 }
-//             } 
-//             return;
-//         }
-//         else(answer != "NO" || answer != "YES");
-//         {
-//             std::cout << "Input invalid. Please type YES or NO: " << std::endl;
-//         }
-//     }while(answer == "NO" || answer == "YES");
-// }
+            for(int x = 0; x < library.size(); x++) //reuploads the whole vector but selected book    //Currently doesn't wipe the old file.
+            {
+                if(x == selected_book)
+                {
+                    continue;
+                }
+                books_counter++;
+                library[x].upload_book(books_total, books_counter); //+2 because minus one from the vecter starting at 0, and removing a book. Howver i don't think it works.
+            }
+            std::cout << "Book Deleted" << std::endl; 
+            return;
+        }
+        else(answer != "NO" || answer != "YES");
+        {
+            std::cout << "Input invalid. Please type YES or NO: " << std::endl;
+        }
+    }while(answer != "NO" || answer != "YES");
+}
 
+void modify_book()
+{
+    std::vector<Book> library = file_in_and_store();  
+    std::string search;
+    bool match = false;
+    int selected_book;
+
+    do  //copied code from earlier (could be condensed)
+    {        
+        std::cout << "Press 'Q' to quit, otherwise enter what you would like to search for: ";
+        getline(std::cin >> std::ws, search);
+        std::cout << std::endl;
+        
+        if(search == "Q" || search == "q")
+        {
+            return;
+        }
+
+        for(int i = 0; i < library.size(); i++) //search through vector of books  //current search only searchs for 1 string, not 2.
+        {
+            match = library[i].book_search_return(search);
+            if(match)
+            {
+                selected_book = i;
+                break;
+            }
+        }
+        if(!match)
+        {
+            std::cout << "Could not find book, please try again" << std::endl;  
+        }
+    } while(!match);        
+    
+   
+    char choice;
+    std::string modify_option;
+    bool yes_no;
+    do
+    { 
+        std::cout << "What would you like to modify" << std::endl;
+        choice = menu_function("|Author|Title|Number of copies", "Back");
+       
+        switch(choice)
+        {   
+            case '1':
+                //system("cls");
+                std::cout << "What would you like to modify 'Author' to: ";
+                getline(std::cin >> std::ws, modify_option);
+                std::cout << "\nAre you sure you would like to modify 'Author' to: " << modify_option << "\nYes/No" << std::endl;
+                yes_no = yes_or_no();
+                if(yes_no) {
+                library[selected_book].modify_author(modify_option);
+                }
+                return;
+            case '2':
+                //system("cls");
+                std::cout << "What would you like to modify 'Title' to: ";
+                getline(std::cin >> std::ws, modify_option);
+                std::cout << "\nAre you sure you would like to modify 'Titles' to: " << modify_option << "\nYes/No" << std::endl;
+                yes_no = yes_or_no();
+                if(yes_no) {
+                library[selected_book].modify_title(modify_option);
+                }
+                return;
+            case '3':
+                //system("cls");
+                std::cout << "What would you like to modify 'Number of copies' to: ";
+                getline(std::cin >> std::ws, modify_option);
+                std::cout << "\nAre you sure you would like to modify 'Number of copies' to: " << modify_option << "\nYes/No" << std::endl;
+                yes_no = yes_or_no();
+                if(yes_no) {
+                library[selected_book].modify_copies(modify_option);
+                }
+                return;
+            case 'Q':
+                //system("cls");
+                return;
+            default:
+                //system("cls");
+                std::cout << "Option not available\n";
+                break;    
+        }
+    }while(true);
+}
+
+bool yes_or_no() //written differnetly so more compact
+{ 
+    bool yes_no;
+    std::string answer;
+    do
+    {
+        std::cin >> answer;
+        transform(answer.begin(), answer.end(), answer.begin(), toupper);
+        std::cout << answer << std::endl;     
+        if(answer == "NO") {
+            yes_no = false; break;
+        }
+        if(answer == "YES"){
+            yes_no = true; break;
+        }
+        std::cout << "Input invalid. Please type YES or NO: " << std::endl;
+    }while(true);
+    if(yes_no) {
+        return yes_no;
+    }
+    return yes_no;  
+}
+
+// void rewrite_database()
+// {
+//     std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ofstream::out | std::ofstream::trunc); //clears the database. Bit risky if something fails, but works for now.
+            
+//     for(int x = 0; x < library.size(); x++) //reuploads the whole vector but selected book    //Currently doesn't wipe the old file.
+//     {
+//         if(x == selected_book)
+//         {
+//             continue;
+//         }
+//         books_counter++;
+//         library[x].upload_book(books_total, books_counter); //+2 because minus one from the vecter starting at 0, and removing a book. Howver i don't think it works.
+// }
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -580,6 +736,41 @@ int main()
     
     library_login();
 
-   
+    
     return 0;
 }
+
+
+
+
+
+// void display_menu()
+// {
+    
+//     std::cout << "Welcome to the Online Library!" << std::endl;
+//     char choice; 
+//     do
+//     {
+//         choice = menu_function("|Customer|Administrator", "Quit");
+        
+//         switch(choice)
+//         {
+//             case '1':
+//                 //system("cls");
+//                 customer_menu();
+//                 break;  
+//             case '2':
+//                 //system("cls");  
+//                 administrator_menu();
+//                 break;
+//             case 'Q':
+//                 //system("cls");
+//                 std::cout << "You have left\n";
+//                 break;    
+//             default:
+//                 //system("cls");
+//                 std::cout << "Option not available\n";
+//         }    
+//     }
+//     while(choice != 'Q'); 
+// }
