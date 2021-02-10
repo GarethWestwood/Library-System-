@@ -49,8 +49,6 @@ class Customer: public User
         }
 };
 
-
-
 //--------------------------------------------------------------------------------------------------------------
 
 class Book
@@ -95,9 +93,10 @@ class Book
             }
             return false;
         }
+            
         void upload_book(int books_total, int book_counter) //dodgy code as it has to open and close the file on every iteration 
         { 
-            std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ios::app);
+            std::ofstream file("LibraryStorage.csv", std::ios::app);
             if(!file.is_open())
             { 
                 std::cout << "LibraryStorage.csv file has not opened" << std::endl;
@@ -112,8 +111,8 @@ class Book
                 file << author << "," << title << "," << copies << std::endl;
             }
             file.close();
-            std::cout << "book counter is " << book_counter << std::endl;
             std::cout << "book total is: " << books_total << std::endl;
+            std::cout << "book counter is: " << book_counter << std::endl;
         }
         
         
@@ -150,6 +149,7 @@ void library_login();
 void administrator_menu();
 void modify_book();
 bool yes_or_no();
+void rewrite_database(std::vector<Book> library);
 
 //---------------------------------------------------------------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ bool yes_or_no();
 
 std::vector<Administrator> administator_in()
 {
-    std::ifstream file ("MyProjects\\Library\\Library_Folder\\administator_users.csv"); 
+    std::ifstream file ("administator_users.csv"); 
     if(!file.is_open())
     { 
         std::cout << "administator_users.csv file has not opened" << std::endl;
@@ -197,7 +197,7 @@ std::vector<Administrator> administator_in()
 
 std::vector<Customer> customer_in()
 {
-    std::ifstream file ("MyProjects\\Library\\Library_Folder\\customer_users.csv"); 
+    std::ifstream file ("customer_users.csv"); 
     if(!file.is_open())
     { 
         std::cout << "customer_users.csv file has not opened" << std::endl;
@@ -236,7 +236,7 @@ std::vector<Customer> customer_in()
 
 std::vector<Book> file_in_and_store()
 {
-    std::ifstream file ("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv"); 
+    std::ifstream file ("LibraryStorage.csv"); 
     if(!file.is_open())
     { 
         std::cout << "file has not opened" << std::endl;
@@ -480,7 +480,7 @@ void book_search() //works
 
 void add_book() //works
 {   
-    std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ios::app);
+    std::ofstream file("LibraryStorage.csv", std::ios::app);
     std::string author, title, copies;
     std::string answer;
     std::vector<Book> library = file_in_and_store();
@@ -531,7 +531,7 @@ void add_book() //works
 void remove_book()
 {
     std::vector<Book> library = file_in_and_store();
-    int books_total = (library.size()-1); //beacuse we are deleting a book
+    int books_total = (library.size()-1);
     int books_counter = 0;
     std::string search;
     std::string answer;
@@ -579,7 +579,7 @@ void remove_book()
         }
         else if(answer == "YES")
         {
-            std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ofstream::out | std::ofstream::trunc); //clears the database. Bit risky if something fails, but works for now.
+            std::ofstream file("LibraryStorage.csv", std::ofstream::out | std::ofstream::trunc); //clears the database. Bit risky if something fails, but works for now.
             
             for(int x = 0; x < library.size(); x++) //reuploads the whole vector but selected book    //Currently doesn't wipe the old file.
             {
@@ -652,6 +652,7 @@ void modify_book()
                 yes_no = yes_or_no();
                 if(yes_no) {
                 library[selected_book].modify_author(modify_option);
+                rewrite_database(library);
                 }
                 return;
             case '2':
@@ -662,6 +663,7 @@ void modify_book()
                 yes_no = yes_or_no();
                 if(yes_no) {
                 library[selected_book].modify_title(modify_option);
+                rewrite_database(library);
                 }
                 return;
             case '3':
@@ -672,6 +674,7 @@ void modify_book()
                 yes_no = yes_or_no();
                 if(yes_no) {
                 library[selected_book].modify_copies(modify_option);
+                rewrite_database(library);
                 }
                 return;
             case 'Q':
@@ -708,19 +711,20 @@ bool yes_or_no() //written differnetly so more compact
     return yes_no;  
 }
 
-// void rewrite_database()
-// {
-//     std::ofstream file("MyProjects\\Library\\Library_Folder\\LibraryStorage.csv", std::ofstream::out | std::ofstream::trunc); //clears the database. Bit risky if something fails, but works for now.
-            
-//     for(int x = 0; x < library.size(); x++) //reuploads the whole vector but selected book    //Currently doesn't wipe the old file.
-//     {
-//         if(x == selected_book)
-//         {
-//             continue;
-//         }
-//         books_counter++;
-//         library[x].upload_book(books_total, books_counter); //+2 because minus one from the vecter starting at 0, and removing a book. Howver i don't think it works.
-// }
+void rewrite_database(std::vector<Book> library)
+{
+    int books_total = library.size();
+    int books_counter = 0;
+
+    std::ofstream file("LibraryStorage.csv", std::ofstream::out | std::ofstream::trunc); //clears the database. Bit risky if something fails, but works for now.
+    
+    for(int x = 0; x < library.size(); x++) //Currently doesn't wipe the old file.
+    {
+        books_counter++;
+        library[x].upload_book(books_total, books_counter);
+    }
+}
+
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -731,46 +735,6 @@ bool yes_or_no() //written differnetly so more compact
 int main()
 {
     //system("cls");
-    //display_menu();
-    
-    
     library_login();
-
-    
     return 0;
 }
-
-
-
-
-
-// void display_menu()
-// {
-    
-//     std::cout << "Welcome to the Online Library!" << std::endl;
-//     char choice; 
-//     do
-//     {
-//         choice = menu_function("|Customer|Administrator", "Quit");
-        
-//         switch(choice)
-//         {
-//             case '1':
-//                 //system("cls");
-//                 customer_menu();
-//                 break;  
-//             case '2':
-//                 //system("cls");  
-//                 administrator_menu();
-//                 break;
-//             case 'Q':
-//                 //system("cls");
-//                 std::cout << "You have left\n";
-//                 break;    
-//             default:
-//                 //system("cls");
-//                 std::cout << "Option not available\n";
-//         }    
-//     }
-//     while(choice != 'Q'); 
-// }
